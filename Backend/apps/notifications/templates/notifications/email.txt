@@ -1,0 +1,11 @@
+Hi {{ user.display_name }},
+
+{{ message }}
+
+Release: {{ release.reference }} {{ release.title }} ({{ release.version }})
+Project: {{ release.project.name }}
+Status: {{ release.get_status_display }}
+
+Open it in Shipyard: {{ frontend_url }}/releases/{{ release.pk }}
+
+Shipyard

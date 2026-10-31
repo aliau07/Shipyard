@@ -1,0 +1,2493 @@
+openapi: 3.0.3
+info:
+  title: Shipyard Release Planning API
+  version: 1.0.0
+  description: 'Release dependency planning for software teams: projects, components,
+    dependencies, manifest imports, releases with sign-off workflow, deploy waves,
+    critical path, impact analysis, comments with screenshots, notifications and dashboards.'
+paths:
+  /api/auth/logout/:
+    post:
+      operationId: api_auth_logout_create
+      description: Revoke the caller's API token.
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/auth/me/:
+    get:
+      operationId: api_auth_me_retrieve
+      description: The signed-in user's details.
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+    patch:
+      operationId: api_auth_me_partial_update
+      description: The signed-in user's details.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedUserRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+          description: ''
+  /api/auth/register/:
+    post:
+      operationId: api_auth_register_create
+      description: Anyone can sign up; they then create a project or are added to
+        one by its owner.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AccountCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AccountCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/AccountCreateRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+          description: ''
+  /api/auth/token/:
+    post:
+      operationId: api_auth_token_create
+      description: Exchange a username (or email) and password for an API token.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      security:
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+          description: ''
+  /api/components/:
+    get:
+      operationId: api_components_list
+      description: Components of your projects. Filter with ?project=<id>.
+      parameters:
+      - in: query
+        name: kind
+        schema:
+          type: string
+          enum:
+          - frontend
+          - library
+          - service
+        description: |-
+          * `service` - Service
+          * `library` - Library
+          * `frontend` - Frontend
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: owner
+        schema:
+          type: integer
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: project
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedComponentList'
+          description: ''
+    post:
+      operationId: api_components_create
+      description: Components of your projects. Filter with ?project=<id>.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComponentCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ComponentCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ComponentCreateRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Component'
+          description: ''
+  /api/components/{id}/:
+    get:
+      operationId: api_components_retrieve
+      description: Components of your projects. Filter with ?project=<id>.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this component.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Component'
+          description: ''
+    patch:
+      operationId: api_components_partial_update
+      description: Components of your projects. Filter with ?project=<id>.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this component.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedComponentRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedComponentRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedComponentRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Component'
+          description: ''
+    delete:
+      operationId: api_components_destroy
+      description: Components of your projects. Filter with ?project=<id>.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this component.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/components/{id}/impact/:
+    get:
+      operationId: api_components_impact_list
+      description: Every component that depends on this one, directly or not, with
+        the path that reaches it.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this component.
+        required: true
+      - in: query
+        name: kind
+        schema:
+          type: string
+          enum:
+          - frontend
+          - library
+          - service
+        description: |-
+          * `service` - Service
+          * `library` - Library
+          * `frontend` - Frontend
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - in: query
+        name: owner
+        schema:
+          type: integer
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: project
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedImpactList'
+          description: ''
+  /api/components/{id}/manifest/:
+    post:
+      operationId: api_components_manifest_create
+      description: 'Upload a requirements.txt or package.json: packages that match
+        components become dependencies.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this component.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ManifestUploadRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ManifestResult'
+          description: ''
+  /api/dashboard/:
+    get:
+      operationId: api_dashboard_retrieve
+      description: Release figures across your projects, or for one project with ?project=<id>.
+      parameters:
+      - in: query
+        name: project
+        schema:
+          type: integer
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/dependencies/:
+    get:
+      operationId: api_dependencies_list
+      description: '`component` depends on `depends_on`. Filter with ?project=<id>
+        or ?component=<id>.'
+      parameters:
+      - in: query
+        name: component
+        schema:
+          type: integer
+      - in: query
+        name: project
+        schema:
+          type: integer
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Dependency'
+          description: ''
+    post:
+      operationId: api_dependencies_create
+      description: '`component` depends on `depends_on`. Filter with ?project=<id>
+        or ?component=<id>.'
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DependencyRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/DependencyRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/DependencyRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DependencyCreated'
+          description: ''
+  /api/dependencies/{id}/:
+    delete:
+      operationId: api_dependencies_destroy
+      description: '`component` depends on `depends_on`. Filter with ?project=<id>
+        or ?component=<id>.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this dependency.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/health/:
+    get:
+      operationId: api_health_retrieve
+      description: Liveness/readiness probe for load balancers and uptime checks;
+        fails if the database is unreachable.
+      tags:
+      - api
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/notifications/:
+    get:
+      operationId: api_notifications_list
+      description: |-
+        Viewsets whose rows depend on the signed-in user implement `scoped_queryset()`.
+
+        The OpenAPI generator inspects views without a user, so it gets the empty `queryset` instead.
+      parameters:
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: unread
+        schema:
+          type: boolean
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedNotificationList'
+          description: ''
+  /api/notifications/{id}/read/:
+    post:
+      operationId: api_notifications_read_create
+      description: |-
+        Viewsets whose rows depend on the signed-in user implement `scoped_queryset()`.
+
+        The OpenAPI generator inspects views without a user, so it gets the empty `queryset` instead.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this notification.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+          description: ''
+  /api/notifications/read-all/:
+    post:
+      operationId: api_notifications_read_all_create
+      description: |-
+        Viewsets whose rows depend on the signed-in user implement `scoped_queryset()`.
+
+        The OpenAPI generator inspects views without a user, so it gets the empty `queryset` instead.
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/notifications/unread-count/:
+    get:
+      operationId: api_notifications_unread_count_retrieve
+      description: Cheap endpoint the React app polls for the bell badge.
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UnreadCount'
+          description: ''
+  /api/projects/:
+    get:
+      operationId: api_projects_list
+      description: Projects you belong to. Creating one makes you its owner.
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProjectList'
+          description: ''
+    post:
+      operationId: api_projects_create
+      description: Projects you belong to. Creating one makes you its owner.
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProjectRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetail'
+          description: ''
+  /api/projects/{id}/:
+    get:
+      operationId: api_projects_retrieve
+      description: Projects you belong to. Creating one makes you its owner.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this project.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetail'
+          description: ''
+    patch:
+      operationId: api_projects_partial_update
+      description: Projects you belong to. Creating one makes you its owner.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this project.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProjectRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProjectRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProjectRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProjectDetail'
+          description: ''
+    delete:
+      operationId: api_projects_destroy
+      description: Projects you belong to. Creating one makes you its owner.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this project.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/projects/{id}/graph/:
+    get:
+      operationId: api_projects_graph_retrieve
+      description: The whole dependency graph laid out in waves, with any cycle and
+        every component's impact paths.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this project.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+  /api/projects/{id}/members/:
+    post:
+      operationId: api_projects_members_create
+      description: Owners add an existing account by username or email.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this project.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberAddRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MemberAddRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MemberAddRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Membership'
+          description: ''
+  /api/projects/{id}/members/{membership_id}/:
+    patch:
+      operationId: api_projects_members_partial_update
+      description: Owners change roles or remove people; anyone may remove themselves.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this project.
+        required: true
+      - in: path
+        name: membership_id
+        schema:
+          type: string
+          pattern: ^\d+$
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMemberRoleRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMemberRoleRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMemberRoleRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Membership'
+          description: ''
+    delete:
+      operationId: api_projects_members_destroy
+      description: Owners change roles or remove people; anyone may remove themselves.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this project.
+        required: true
+      - in: path
+        name: membership_id
+        schema:
+          type: string
+          pattern: ^\d+$
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/releases/:
+    get:
+      operationId: api_releases_list
+      description: Releases of your projects. What you can do depends on your project
+        role (see `allowed_actions`).
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - in: query
+        name: project
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      - in: query
+        name: status
+        schema:
+          type: string
+          enum:
+          - approved
+          - blocked
+          - cancelled
+          - draft
+          - in_progress
+          - in_review
+          - released
+        description: |-
+          * `draft` - Draft
+          * `in_review` - In review
+          * `approved` - Approved
+          * `in_progress` - In progress
+          * `released` - Released
+          * `blocked` - Blocked
+          * `cancelled` - Cancelled
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedReleaseListList'
+          description: ''
+    post:
+      operationId: api_releases_create
+      description: Releases of your projects. What you can do depends on your project
+        role (see `allowed_actions`).
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReleaseCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ReleaseCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ReleaseCreateRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseDetail'
+          description: ''
+  /api/releases/{id}/:
+    get:
+      operationId: api_releases_retrieve
+      description: Releases of your projects. What you can do depends on your project
+        role (see `allowed_actions`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this release.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseDetail'
+          description: ''
+    patch:
+      operationId: api_releases_partial_update
+      description: Releases of your projects. What you can do depends on your project
+        role (see `allowed_actions`).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this release.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedReleaseUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedReleaseUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedReleaseUpdateRequest'
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseDetail'
+          description: ''
+  /api/releases/{id}/changes/:
+    post:
+      operationId: api_releases_changes_create
+      description: Add a component change to a draft release.
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this release.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeInputRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangeInputRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangeInputRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Change'
+          description: ''
+  /api/releases/{id}/changes/{change_id}/:
+    delete:
+      operationId: api_releases_changes_destroy
+      description: Releases of your projects. What you can do depends on your project
+        role (see `allowed_actions`).
+      parameters:
+      - in: path
+        name: change_id
+        schema:
+          type: string
+          pattern: ^\d+$
+        required: true
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this release.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/releases/{id}/comments/:
+    post:
+      operationId: api_releases_comments_create
+      description: Comment as JSON, or as multipart form data with a `body` and up
+        to five `images` (screenshots).
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this release.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CommentCreateRequest'
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommentCreateRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Comment'
+          description: ''
+  /api/releases/{id}/export/:
+    get:
+      operationId: api_releases_export_retrieve
+      description: 'Download the deploy plan as CSV: waves, order, owners, timings,
+        sign-offs and impact.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this release.
+        required: true
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            text/csv:
+              schema:
+                type: string
+          description: ''
+  /api/releases/{id}/transition/:
+    post:
+      operationId: api_releases_transition_create
+      description: 'Move the release through its workflow, e.g. {"action": "block",
+        "reason": "Waiting for DBA"}.'
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: integer
+        description: A unique integer value identifying this release.
+        required: true
+      tags:
+      - api
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TransitionRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TransitionRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TransitionRequest'
+        required: true
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReleaseDetail'
+          description: ''
+  /api/schema/:
+    get:
+      operationId: api_schema_retrieve
+      description: |-
+        OpenApi3 schema for this API. Format can be selected via content negotiation.
+
+        - YAML: application/vnd.oai.openapi
+        - JSON: application/vnd.oai.openapi+json
+      parameters:
+      - in: query
+        name: format
+        schema:
+          type: string
+          enum:
+          - json
+          - yaml
+      - in: query
+        name: lang
+        schema:
+          type: string
+          enum:
+          - af
+          - ar
+          - ar-dz
+          - ast
+          - az
+          - be
+          - bg
+          - bn
+          - br
+          - bs
+          - ca
+          - ckb
+          - cs
+          - cy
+          - da
+          - de
+          - dsb
+          - el
+          - en
+          - en-au
+          - en-gb
+          - eo
+          - es
+          - es-ar
+          - es-co
+          - es-mx
+          - es-ni
+          - es-ve
+          - et
+          - eu
+          - fa
+          - fi
+          - fr
+          - fy
+          - ga
+          - gd
+          - gl
+          - he
+          - hi
+          - hr
+          - hsb
+          - hu
+          - hy
+          - ia
+          - id
+          - ig
+          - io
+          - is
+          - it
+          - ja
+          - ka
+          - kab
+          - kk
+          - km
+          - kn
+          - ko
+          - ky
+          - lb
+          - lt
+          - lv
+          - mk
+          - ml
+          - mn
+          - mr
+          - ms
+          - my
+          - nb
+          - ne
+          - nl
+          - nn
+          - os
+          - pa
+          - pl
+          - pt
+          - pt-br
+          - ro
+          - ru
+          - sk
+          - sl
+          - sq
+          - sr
+          - sr-latn
+          - sv
+          - sw
+          - ta
+          - te
+          - tg
+          - th
+          - tk
+          - tr
+          - tt
+          - udm
+          - ug
+          - uk
+          - ur
+          - uz
+          - vi
+          - zh-hans
+          - zh-hant
+      tags:
+      - api
+      security:
+      - tokenAuth: []
+      - cookieAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/vnd.oai.openapi:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/yaml:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/vnd.oai.openapi+json:
+              schema:
+                type: object
+                additionalProperties: {}
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
+components:
+  schemas:
+    AccountCreateRequest:
+      type: object
+      description: New account details, checked with Django's password validators.
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+      required:
+      - email
+      - password
+      - username
+    ActionEnum:
+      enum:
+      - submit
+      - sign_off
+      - approve
+      - request_changes
+      - start
+      - mark_released
+      - block
+      - unblock
+      - cancel
+      - reopen
+      type: string
+      description: |-
+        * `submit` - submit
+        * `sign_off` - sign_off
+        * `approve` - approve
+        * `request_changes` - request_changes
+        * `start` - start
+        * `mark_released` - mark_released
+        * `block` - block
+        * `unblock` - unblock
+        * `cancel` - cancel
+        * `reopen` - reopen
+    BlankEnum:
+      enum:
+      - ''
+    Change:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        component:
+          type: integer
+        component_name:
+          type: string
+          readOnly: true
+        component_kind:
+          type: string
+          readOnly: true
+        owner:
+          type: integer
+          readOnly: true
+        owner_name:
+          type: string
+          readOnly: true
+        change_type:
+          $ref: '#/components/schemas/ChangeTypeEnum'
+        change_type_display:
+          type: string
+          readOnly: true
+        summary:
+          type: string
+          maxLength: 300
+        added_by_name:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - added_by_name
+      - change_type_display
+      - component
+      - component_kind
+      - component_name
+      - id
+      - owner
+      - owner_name
+      - summary
+    ChangeInputRequest:
+      type: object
+      properties:
+        component:
+          type: integer
+        summary:
+          type: string
+          minLength: 1
+          maxLength: 300
+        change_type:
+          $ref: '#/components/schemas/ChangeTypeEnum'
+      required:
+      - component
+      - summary
+    ChangeTypeEnum:
+      enum:
+      - feature
+      - fix
+      - breaking
+      - chore
+      type: string
+      description: |-
+        * `feature` - Feature
+        * `fix` - Fix
+        * `breaking` - Breaking change
+        * `chore` - Maintenance
+    Comment:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        author_name:
+          type: string
+          readOnly: true
+        body:
+          type: string
+          maxLength: 4000
+        screenshots:
+          type: array
+          items:
+            $ref: '#/components/schemas/Screenshot'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - author_name
+      - body
+      - id
+      - screenshots
+    CommentCreateRequest:
+      type: object
+      properties:
+        body:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        images:
+          type: array
+          items:
+            type: string
+            format: binary
+          maxItems: 5
+      required:
+      - body
+    Component:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        project:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          pattern: ^[a-z0-9][a-z0-9._-]*$
+          maxLength: 80
+        kind:
+          $ref: '#/components/schemas/ComponentKindEnum'
+        kind_display:
+          type: string
+          readOnly: true
+        owner:
+          type: integer
+          nullable: true
+        owner_name:
+          type: string
+          readOnly: true
+        package_name:
+          type: string
+          description: Name in requirements.txt or package.json, if not the component
+            name.
+          maxLength: 214
+        deploy_minutes:
+          type: integer
+          maximum: 1440
+          minimum: 1
+          description: Estimated time to deploy and verify.
+        description:
+          type: string
+          maxLength: 500
+        repository_url:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+        dependency_count:
+          type: integer
+          readOnly: true
+          default: 0
+        dependent_count:
+          type: integer
+          readOnly: true
+          default: 0
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - dependency_count
+      - dependent_count
+      - id
+      - kind_display
+      - name
+      - owner_name
+      - project
+    ComponentCreateRequest:
+      type: object
+      properties:
+        project:
+          type: integer
+        name:
+          type: string
+          minLength: 1
+          pattern: ^[a-z0-9][a-z0-9._-]*$
+          maxLength: 80
+        kind:
+          $ref: '#/components/schemas/ComponentKindEnum'
+        owner:
+          type: integer
+          nullable: true
+        package_name:
+          type: string
+          description: Name in requirements.txt or package.json, if not the component
+            name.
+          maxLength: 214
+        deploy_minutes:
+          type: integer
+          maximum: 1440
+          minimum: 1
+          description: Estimated time to deploy and verify.
+        description:
+          type: string
+          maxLength: 500
+        repository_url:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+      required:
+      - name
+      - project
+    ComponentKindEnum:
+      enum:
+      - service
+      - library
+      - frontend
+      type: string
+      description: |-
+        * `service` - Service
+        * `library` - Library
+        * `frontend` - Frontend
+    Dependency:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        component:
+          type: integer
+        component_name:
+          type: string
+          readOnly: true
+        depends_on:
+          type: integer
+        depends_on_name:
+          type: string
+          readOnly: true
+        source:
+          allOf:
+          - $ref: '#/components/schemas/DependencySourceEnum'
+          readOnly: true
+        source_display:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - component
+      - component_name
+      - created_at
+      - depends_on
+      - depends_on_name
+      - id
+      - source
+      - source_display
+    DependencyCreated:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        component:
+          type: integer
+        component_name:
+          type: string
+          readOnly: true
+        depends_on:
+          type: integer
+        depends_on_name:
+          type: string
+          readOnly: true
+        source:
+          allOf:
+          - $ref: '#/components/schemas/DependencySourceEnum'
+          readOnly: true
+        source_display:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        cycle:
+          type: array
+          items:
+            type: string
+          readOnly: true
+          nullable: true
+      required:
+      - component
+      - component_name
+      - created_at
+      - cycle
+      - depends_on
+      - depends_on_name
+      - id
+      - source
+      - source_display
+    DependencyRequest:
+      type: object
+      properties:
+        component:
+          type: integer
+        depends_on:
+          type: integer
+      required:
+      - component
+      - depends_on
+    DependencySourceEnum:
+      enum:
+      - manual
+      - manifest
+      type: string
+      description: |-
+        * `manual` - Added by hand
+        * `manifest` - Imported from a manifest
+    Impact:
+      type: object
+      properties:
+        name:
+          type: string
+        depth:
+          type: integer
+        path:
+          type: array
+          items:
+            type: string
+        in_view:
+          type: boolean
+      required:
+      - depth
+      - in_view
+      - name
+      - path
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+        password:
+          type: string
+          minLength: 1
+      required:
+      - password
+      - username
+    ManifestResult:
+      type: object
+      properties:
+        format:
+          type: string
+        packages:
+          type: integer
+        created:
+          type: array
+          items:
+            type: string
+        existing:
+          type: array
+          items:
+            type: string
+        unmatched:
+          type: array
+          items:
+            type: string
+        cycle:
+          type: array
+          items:
+            type: string
+          nullable: true
+      required:
+      - created
+      - cycle
+      - existing
+      - format
+      - packages
+      - unmatched
+    ManifestUploadRequest:
+      type: object
+      properties:
+        file:
+          type: string
+          format: binary
+          description: A requirements.txt (or other pip .txt file) or a package.json.
+      required:
+      - file
+    MemberAddRequest:
+      type: object
+      properties:
+        user:
+          type: string
+          minLength: 1
+          description: Username or email address of an existing account.
+        role:
+          allOf:
+          - $ref: '#/components/schemas/MembershipRoleEnum'
+          default: engineer
+      required:
+      - user
+    Membership:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        user:
+          allOf:
+          - $ref: '#/components/schemas/PublicUser'
+          readOnly: true
+        role:
+          $ref: '#/components/schemas/MembershipRoleEnum'
+        role_display:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - role_display
+      - user
+    MembershipRoleEnum:
+      enum:
+      - owner
+      - release_manager
+      - engineer
+      type: string
+      description: |-
+        * `owner` - Owner
+        * `release_manager` - Release manager
+        * `engineer` - Engineer
+    Notification:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        release:
+          type: integer
+        release_reference:
+          type: string
+          readOnly: true
+        project_name:
+          type: string
+          readOnly: true
+        message:
+          type: string
+          maxLength: 300
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        read_at:
+          type: string
+          format: date-time
+          nullable: true
+        is_read:
+          type: boolean
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - is_read
+      - message
+      - project_name
+      - release
+      - release_reference
+    PaginatedComponentList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Component'
+    PaginatedImpactList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Impact'
+    PaginatedNotificationList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Notification'
+    PaginatedProjectList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Project'
+    PaginatedReleaseListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReleaseList'
+    PatchedComponentRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          pattern: ^[a-z0-9][a-z0-9._-]*$
+          maxLength: 80
+        kind:
+          $ref: '#/components/schemas/ComponentKindEnum'
+        owner:
+          type: integer
+          nullable: true
+        package_name:
+          type: string
+          description: Name in requirements.txt or package.json, if not the component
+            name.
+          maxLength: 214
+        deploy_minutes:
+          type: integer
+          maximum: 1440
+          minimum: 1
+          description: Estimated time to deploy and verify.
+        description:
+          type: string
+          maxLength: 500
+        repository_url:
+          oneOf:
+          - type: string
+            format: uri
+            maxLength: 200
+          - type: string
+            maxLength: 0
+    PatchedMemberRoleRequest:
+      type: object
+      properties:
+        role:
+          $ref: '#/components/schemas/MembershipRoleEnum'
+    PatchedProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+    PatchedReleaseUpdateRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        version:
+          type: string
+          minLength: 1
+          maxLength: 40
+        description:
+          type: string
+        target_date:
+          type: string
+          format: date
+          nullable: true
+    PatchedUserRequest:
+      type: object
+      description: The signed-in user.
+      properties:
+        email:
+          type: string
+          format: email
+          minLength: 1
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 120
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        viewer_role:
+          type: string
+          readOnly: true
+        component_count:
+          type: integer
+          readOnly: true
+          default: 0
+        open_release_count:
+          type: integer
+          readOnly: true
+          default: 0
+      required:
+      - component_count
+      - created_at
+      - id
+      - name
+      - open_release_count
+      - viewer_role
+    ProjectDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        name:
+          type: string
+          maxLength: 120
+        description:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        viewer_role:
+          type: string
+          readOnly: true
+        component_count:
+          type: integer
+          readOnly: true
+          default: 0
+        open_release_count:
+          type: integer
+          readOnly: true
+          default: 0
+        members:
+          type: array
+          items:
+            $ref: '#/components/schemas/Membership'
+          readOnly: true
+        can_manage:
+          type: boolean
+          readOnly: true
+      required:
+      - can_manage
+      - component_count
+      - created_at
+      - id
+      - members
+      - name
+      - open_release_count
+      - viewer_role
+    ProjectRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+      required:
+      - name
+    PublicUser:
+      type: object
+      description: What teammates see about a user.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        display_name:
+          type: string
+          readOnly: true
+        email:
+          type: string
+          format: email
+          maxLength: 254
+      required:
+      - display_name
+      - email
+      - id
+      - username
+    ReleaseCreateRequest:
+      type: object
+      properties:
+        project:
+          type: integer
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        version:
+          type: string
+          minLength: 1
+          maxLength: 40
+        description:
+          type: string
+        target_date:
+          type: string
+          format: date
+          nullable: true
+        changes:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChangeInputRequest'
+      required:
+      - project
+      - title
+      - version
+    ReleaseDetail:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        reference:
+          type: string
+          readOnly: true
+        project:
+          type: integer
+        project_name:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          maxLength: 120
+        version:
+          type: string
+          maxLength: 40
+        status:
+          $ref: '#/components/schemas/ReleaseStatusEnum'
+        status_display:
+          type: string
+          readOnly: true
+        target_date:
+          type: string
+          format: date
+          nullable: true
+        created_by_name:
+          type: string
+          readOnly: true
+        change_count:
+          type: integer
+          readOnly: true
+          default: 0
+        blocked_reason:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+        description:
+          type: string
+        blocked_from:
+          description: |-
+            Where the release returns to when it is unblocked.
+
+            * `draft` - Draft
+            * `in_review` - In review
+            * `approved` - Approved
+            * `in_progress` - In progress
+            * `released` - Released
+            * `blocked` - Blocked
+            * `cancelled` - Cancelled
+          oneOf:
+          - $ref: '#/components/schemas/ReleaseStatusEnum'
+          - $ref: '#/components/schemas/BlankEnum'
+        reopen_count:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        submitted_at:
+          type: string
+          format: date-time
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          nullable: true
+        started_at:
+          type: string
+          format: date-time
+          nullable: true
+        released_at:
+          type: string
+          format: date-time
+          nullable: true
+        closed_at:
+          type: string
+          format: date-time
+          nullable: true
+          description: When it was cancelled.
+        changes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Change'
+          readOnly: true
+        sign_offs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SignOff'
+          readOnly: true
+        viewer_role:
+          type: string
+          readOnly: true
+        allowed_actions:
+          type: array
+          items: {}
+          readOnly: true
+        approval:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        plan:
+          type: object
+          additionalProperties: {}
+          readOnly: true
+        timeline:
+          type: array
+          items: {}
+          description: Events and comments merged in time order.
+          readOnly: true
+      required:
+      - allowed_actions
+      - approval
+      - change_count
+      - changes
+      - created_by_name
+      - id
+      - plan
+      - project
+      - project_name
+      - reference
+      - sign_offs
+      - status_display
+      - timeline
+      - title
+      - updated_at
+      - version
+      - viewer_role
+    ReleaseList:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        reference:
+          type: string
+          readOnly: true
+        project:
+          type: integer
+        project_name:
+          type: string
+          readOnly: true
+        title:
+          type: string
+          maxLength: 120
+        version:
+          type: string
+          maxLength: 40
+        status:
+          $ref: '#/components/schemas/ReleaseStatusEnum'
+        status_display:
+          type: string
+          readOnly: true
+        target_date:
+          type: string
+          format: date
+          nullable: true
+        created_by_name:
+          type: string
+          readOnly: true
+        change_count:
+          type: integer
+          readOnly: true
+          default: 0
+        blocked_reason:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - change_count
+      - created_by_name
+      - id
+      - project
+      - project_name
+      - reference
+      - status_display
+      - title
+      - updated_at
+      - version
+    ReleaseStatusEnum:
+      enum:
+      - draft
+      - in_review
+      - approved
+      - in_progress
+      - released
+      - blocked
+      - cancelled
+      type: string
+      description: |-
+        * `draft` - Draft
+        * `in_review` - In review
+        * `approved` - Approved
+        * `in_progress` - In progress
+        * `released` - Released
+        * `blocked` - Blocked
+        * `cancelled` - Cancelled
+    Screenshot:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        image:
+          type: string
+          format: uri
+        thumbnail:
+          type: string
+          format: uri
+      required:
+      - id
+      - image
+      - thumbnail
+    SignOff:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        component:
+          type: integer
+        component_name:
+          type: string
+          readOnly: true
+        user:
+          type: integer
+          nullable: true
+        user_name:
+          type: string
+          readOnly: true
+        note:
+          type: string
+          maxLength: 500
+        created_at:
+          type: string
+          format: date-time
+      required:
+      - component
+      - component_name
+      - id
+      - user_name
+    TokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          $ref: '#/components/schemas/User'
+      required:
+      - token
+      - user
+    TransitionRequest:
+      type: object
+      properties:
+        action:
+          $ref: '#/components/schemas/ActionEnum'
+        note:
+          type: string
+          maxLength: 2000
+        reason:
+          type: string
+          maxLength: 2000
+      required:
+      - action
+    UnreadCount:
+      type: object
+      properties:
+        unread:
+          type: integer
+      required:
+      - unread
+    User:
+      type: object
+      description: The signed-in user.
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        username:
+          type: string
+          readOnly: true
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        display_name:
+          type: string
+          readOnly: true
+        is_staff:
+          type: boolean
+          readOnly: true
+          title: Staff status
+          description: Designates whether the user can log into this admin site.
+      required:
+      - display_name
+      - email
+      - id
+      - is_staff
+      - username
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: sessionid
+    tokenAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: Token-based authentication with required prefix "Token"
